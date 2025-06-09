@@ -8,8 +8,9 @@ namespace Malshinon.Models
         public static void Main(string[] args)
         {
             MySqlData sqlData = new MySqlData();
-            sqlData.GetConnect();
-            sqlData.DisConnection();
+            People people = new People(1, "firstName", "lastName", "people1", "reporter", 0 , 0 );
+            PeopleDAL peopleDAL = new PeopleDAL(sqlData);
+            peopleDAL.AddPeople(people);
         }
     }
 } 
