@@ -8,11 +8,11 @@ namespace Malshinon.Models
         public static void Main(string[] args)
         {
             MySqlData sqlData = new MySqlData();
-            // People people = new People(2, "firstName", "lastName", "people1", "reporter", 0, 0);
+            // People people = new People(2, "firstName", "lastName", "people2", "reporter", 0, 0);
             // PeopleDAL peopleDAL = new PeopleDAL(sqlData);
             // peopleDAL.AddPeople(people);
 
-            IntelReports reports = new IntelReports(1, 1, 1, "Report", $"{DateTime.Now}");
+            IntelReports reports = new IntelReports(id: 1, reporterId: 1, targetId: 2, text: "Report", timeStamp: DateTime.Now);
             IntelReportsDAL reportsDAL = new IntelReportsDAL(sqlData);
             reportsDAL.AddReports(reports);
         }

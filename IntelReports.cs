@@ -9,9 +9,9 @@ namespace Malshinon.Models
         public int ReporterId { get; set; }
         public int TargetId { get; set; }
         public string Text { get; set; }
-        public string TimeStamp { get; set; }
+        public DateTime TimeStamp { get; set; }
 
-        public IntelReports(int id, int reporterId, int targetId, string text, string timeStamp)
+        public IntelReports(int id, int reporterId, int targetId, string text, DateTime timeStamp)
         {
             Id = id;
             ReporterId = reporterId;
