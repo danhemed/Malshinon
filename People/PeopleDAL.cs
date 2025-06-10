@@ -2,6 +2,7 @@ using System;
 using Malshinon.Models;
 using Malshinon.DataBase;
 using MySql.Data.MySqlClient;
+using Org.BouncyCastle.Asn1.X509.SigI;
 
 namespace Malshinon.Models
 {
@@ -47,19 +48,20 @@ namespace Malshinon.Models
                 MySqlConnection conn = _sqlData.GetConnect();
                 var cmd = new MySqlCommand("SELECT * FROM people", conn);
                 var reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    People person = new People(
-                        reader.GetInt32("Id"),
-                        reader.GetString("FirstName"),
-                        reader.GetString("LastName"),
-                        reader.GetString("Secret_Code"),
-                        reader.GetString("Type"),
-                        reader.GetInt32("Num_Reports"),
-                        reader.GetInt32("Num_Mentions")
-                    );
-                    people.Add(person);
-                }
+                people.Add(People.createFromReader(reader));
+                // while (reader.Read())
+                // {
+                //     People person = new People(
+                //         reader.GetInt32("Id"),
+                //         reader.GetString("FirstName"),
+                //         reader.GetString("LastName"),
+                //         reader.GetString("Secret_Code"),
+                //         reader.GetString("Type"),
+                //         reader.GetInt32("Num_Reports"),
+                //         reader.GetInt32("Num_Mentions")
+                //     );
+                //     people.Add(person);
+                // }
                 return people;
             }
             catch (System.Exception ex)
@@ -138,6 +140,47 @@ namespace Malshinon.Models
             catch (Exception ex)
             {
                 Console.WriteLine($"ERROR!! {ex.Message}");
+            }
+        }
+
+        public bool SearchByID(string secretCode)
+        {
+            try
+            {
+                var people = new List<People>();
+                MySqlConnection conn = _sqlData.GetConnect();
+                var cmd = new MySqlCommand("SELECT * FROM people", conn);
+                var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    People person = new People(
+                        reader.GetInt32("Id"),
+                        reader.GetString("FirstName"),
+                        reader.GetString("LastName"),
+                        reader.GetString("Secret_Code"),
+                        reader.GetString("Type"),
+                        reader.GetInt32("Num_Reports"),
+                        reader.GetInt32("Num_Mentions")
+                    );
+                    people.Add(person);
+                }
+                foreach (var person in people)
+                {
+                    if (person.SecretCode == secretCode)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+                return false;
             }
         }
     }
