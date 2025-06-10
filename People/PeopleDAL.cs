@@ -68,5 +68,45 @@ namespace Malshinon.Models
                 return null;
             }
         }
+
+        public void UpdatePerson(People people, string Secret_Code)
+        {
+            try
+            {
+                var ListPeople = new List<People>();
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    string query = @"UPDATE people SET id = @Id, firstName = @FirstName, lastName = @LastName, type = @Type, num_reports = @Num_Reports, num_mentions = @Num_Mentions" +
+                        " WHERE secret_code = @Secret_Code";
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@Id", people.Id);
+                    cmd.Parameters.AddWithValue("@FirstName", people.FirstName);
+                    cmd.Parameters.AddWithValue("@LastName", people.LastName);
+                    cmd.Parameters.AddWithValue("@Type", people.Type);
+                    cmd.Parameters.AddWithValue("@Num_Reports", people.NumReports);
+                    cmd.Parameters.AddWithValue("@Num_Mentions", people.NumMentions);
+                    cmd.Parameters.AddWithValue("@Secret_Code", Secret_Code);
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        Console.WriteLine("Updated successfully!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("The update was not successful!");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+            }
+        }
+
+        public void DeletePerson(string Secret_Code)
+        {
+            
+        }
     }
 }

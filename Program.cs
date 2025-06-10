@@ -8,9 +8,14 @@ namespace Malshinon.Models
         public static void Main(string[] args)
         {
             MySqlData sqlData = new MySqlData();
-            People people = new People(2, "firstName", "lastName", "people2", "reporter", 0, 0);
-            PeopleDAL peopleDAL = new PeopleDAL(sqlData);
+            // People people = new People(3, "firstName", "lastName", "people2", "reporter", 0, 0);
+            // PeopleDAL peopleDAL = new PeopleDAL(sqlData);
             // peopleDAL.AddPeople(people);
+
+            PeopleDAL peopleDAL = new PeopleDAL(sqlData);
+            People NewPeople = new People(2, "newFirstName", "newLastName", "people2", "potential_agent", 10, 5);
+            peopleDAL.UpdatePerson(NewPeople, "people2");
+
 
             // # for print the table people #
             foreach (var person in peopleDAL.GetAllPeople())
@@ -18,8 +23,8 @@ namespace Malshinon.Models
                 Console.WriteLine(person);
             }
 
-            IntelReports reports = new IntelReports(id: 1, reporterId: 1, targetId: 2, text: "Report", timeStamp: DateTime.Now);
-            IntelReportsDAL reportsDAL = new IntelReportsDAL(sqlData);
+            // IntelReports reports = new IntelReports(id: 1, reporterId: 1, targetId: 2, text: "Report", timeStamp: DateTime.Now);
+            // IntelReportsDAL reportsDAL = new IntelReportsDAL(sqlData);
             // reportsDAL.AddReports(reports);
         }
     }
