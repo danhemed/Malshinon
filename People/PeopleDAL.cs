@@ -104,9 +104,41 @@ namespace Malshinon.Models
             }
         }
 
-        public void DeletePerson(string Secret_Code)
+        public void DeletePerson(int PeopleId)
         {
-            
+            try
+            {
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    string queryReports = @"DELETE FROM intel_reports WHERE reporter_id = @Reporter_Id";
+                    MySqlCommand cmdReports = new MySqlCommand(queryReports, conn);
+                    cmdReports.Parameters.AddWithValue("@Reporter_Id", PeopleId);
+                    int rowsAffectedReports = cmdReports.ExecuteNonQuery();
+
+                    if (rowsAffectedReports > 0)
+                    {
+                        Console.WriteLine("Delete reports of person successfully!");
+                    }
+
+                    string queryPeople = "DELETE FROM people WHERE id = @Id";
+                    MySqlCommand cmdPeople = new MySqlCommand(queryPeople, conn);
+                    cmdPeople.Parameters.AddWithValue("@Id", PeopleId);
+                    int rowsAffectedPeople = cmdPeople.ExecuteNonQuery();
+
+                    if (rowsAffectedPeople > 0)
+                    {
+                        Console.WriteLine("Delete person successfully!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("The delete was not successful!");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+            }
         }
     }
 }

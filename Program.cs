@@ -13,8 +13,9 @@ namespace Malshinon.Models
             // peopleDAL.AddPeople(people);
 
             PeopleDAL peopleDAL = new PeopleDAL(sqlData);
-            People NewPeople = new People(2, "newFirstName", "newLastName", "people2", "potential_agent", 10, 5);
-            peopleDAL.UpdatePerson(NewPeople, "people2");
+            // People NewPeople = new People(2, "newFirstName", "newLastName", "people2", "potential_agent", 10, 5);
+            // peopleDAL.UpdatePerson(NewPeople, "people2");
+            peopleDAL.DeletePerson(2);
 
 
             // # for print the table people #
