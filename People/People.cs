@@ -23,5 +23,11 @@ namespace Malshinon.Models
             NumReports = numReports;
             NumMentions = numMentions;
         }
+
+        // # for print the row #
+        public override string ToString()
+        {
+            return $"ID: {Id}, FirstName: {FirstName}, LastName: {LastName}, SecretCode: {SecretCode}, Type: {Type}, NumReports: {NumReports}, NumMentions: {NumMentions}";
+        }
     }
 }
