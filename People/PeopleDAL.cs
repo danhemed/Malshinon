@@ -38,5 +38,35 @@ namespace Malshinon.Models
                 Console.WriteLine($"ERROR!! {ex.Message}");
             }
         }
+
+        public List<People> GetAllPeople()
+        {
+            try
+            {
+                var people = new List<People>();
+                MySqlConnection conn = _sqlData.GetConnect();
+                var cmd = new MySqlCommand("SELECT * FROM people", conn);
+                var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    People person = new People(
+                        reader.GetInt32("Id"),
+                        reader.GetString("FirstName"),
+                        reader.GetString("LastName"),
+                        reader.GetString("Secret_Code"),
+                        reader.GetString("Type"),
+                        reader.GetInt32("Num_Reports"),
+                        reader.GetInt32("Num_Mentions")
+                    );
+                    people.Add(person);
+                }
+                return people;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+                return null;
+            }
+        }
     }
 }
