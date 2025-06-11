@@ -36,5 +36,169 @@ namespace Malshinon.Models
                 Console.WriteLine($"ERROR!! {ex.Message}");
             }
         }
+
+        public List<IntelReports> GetAllIntelReports()
+        {
+            try
+            {
+                var reports = new List<IntelReports>();
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    var cmd = new MySqlCommand("SELECT * FROM intel_reports", conn);
+                    var reader = cmd.ExecuteReader();
+                    reports.Add(IntelReports.createFromReader(reader));
+                    while (reader.Read())
+                    {
+                        IntelReports report = IntelReports.createFromReader(reader);
+                        reports.Add(report);
+                    }
+                }
+                return reports;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+                return null;
+            }
+        }
+
+        public List<IntelReports> GetAllIntelReportsOfReporter(string secretCode)
+        {
+            try
+            {
+                var reports = new List<IntelReports>();
+                PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
+                int personId = peopleDAL.GetIdOfPerson(secretCode);
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    var cmd = new MySqlCommand("SELECT * FROM intel_reports WHERE reporter_id = @ReporterId", conn);
+                    var reader = cmd.ExecuteReader();
+                    cmd.Parameters.AddWithValue("@ReporterId", personId);
+                    reports.Add(IntelReports.createFromReader(reader));
+                    while (reader.Read())
+                    {
+                        IntelReports report = IntelReports.createFromReader(reader);
+                        reports.Add(report);
+                    }
+                }
+                return reports;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+                return null;
+            }
+        }
+
+        public IntelReports GetReport(string secretCode)
+        {
+            try
+            {
+                PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
+                int personId = peopleDAL.GetIdOfPerson(secretCode);
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    var cmd = new MySqlCommand("SELECT * FROM intel_Reports WHERE reporter_id = @ReporterId", conn);
+                    cmd.Parameters.AddWithValue("@ReporterId", personId);
+                    var reader = cmd.ExecuteReader();
+                    if (reader.Read())
+                    {
+                        return IntelReports.createFromReader(reader);
+                    }
+                }
+                return null;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+                return null;
+            }
+        }
+
+        public void UpdateReport(int targetId, string text, string secretCode)
+        {
+            try
+            {
+                PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
+                int personId = peopleDAL.GetIdOfPerson(secretCode);
+
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    string query = @"UPDATE intel_reports SET target_id = @TargetId, text = @Text" +
+                                " WHERE reporter_id = @ReporterId";
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@ReporterId", personId);
+                    cmd.Parameters.AddWithValue("@TargetId", targetId);
+                    cmd.Parameters.AddWithValue("@Text", text);
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        Console.WriteLine("Updated Person successfully!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("The update person was not successful!");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+            }
+        }
+
+        public void DeleteReport(string secretCode)
+        {
+            try
+            {
+                PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
+                int personId = peopleDAL.GetIdOfPerson(secretCode);
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    string queryReports = @"DELETE FROM intel_reports WHERE reporter_id = @Reporter_Id";
+                    MySqlCommand cmdReports = new MySqlCommand(queryReports, conn);
+                    cmdReports.Parameters.AddWithValue("@Reporter_Id", personId);
+                    int rowsAffectedReports = cmdReports.ExecuteNonQuery();
+
+                    if (rowsAffectedReports > 0)
+                    {
+                        Console.WriteLine("Delete reports of person successfully!");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+            }
+        }
+
+        public bool GetStats(string secretCode)
+        {
+            try
+            {
+                IntelReportsDAL intelReportsDAL = new IntelReportsDAL(_sqlData);
+                List<IntelReports> reports = intelReportsDAL.GetAllIntelReportsOfReporter(secretCode);
+                int counter = 0;
+                foreach (var report in reports)
+                {
+                    counter += report.Text.Length;
+                }
+                if ((counter / 2) > 100)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+                return false;
+            }
+        }
+
     }
 }
