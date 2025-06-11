@@ -110,7 +110,7 @@ namespace Malshinon.Models
             }
         }
 
-        public void UpdatePerson(string firstName, string lastName, string secretCode, string type)
+        public void UpdatePerson(string firstName, string lastName, string secretCode, string type, int numReports , int numMentions)
         {
             try
             {
@@ -118,7 +118,7 @@ namespace Malshinon.Models
 
                 using (MySqlConnection conn = _sqlData.GetConnect())
                 {
-                    string query = @"UPDATE people SET firstName = @FirstName, lastName = @LastName, secret_code = @Secret_Code, type = @Type" +
+                    string query = @"UPDATE people SET firstName = @FirstName, lastName = @LastName, secret_code = @Secret_Code, type = @Type, num_reports = @Num_Reports, num_mentions = @Num_Mentions" +
                                 " WHERE secret_code = @SecretCode";
                     MySqlCommand cmd = new MySqlCommand(query, conn);
                     cmd.Parameters.AddWithValue("@SecretCode", secretCode);
@@ -126,8 +126,8 @@ namespace Malshinon.Models
                     cmd.Parameters.AddWithValue("@LastName", lastName);
                     cmd.Parameters.AddWithValue("@Secret_Code", secretCode);
                     cmd.Parameters.AddWithValue("@Type", type);
-                    cmd.Parameters.AddWithValue("@Num_Reports", person.NumReports);
-                    cmd.Parameters.AddWithValue("@Num_Mentions", person.NumMentions);
+                    cmd.Parameters.AddWithValue("@Num_Reports", numReports);
+                    cmd.Parameters.AddWithValue("@Num_Mentions", numMentions);
                     int rowsAffected = cmd.ExecuteNonQuery();
 
                     if (rowsAffected > 0)
@@ -222,7 +222,6 @@ namespace Malshinon.Models
         {
             try
             {
-                var ListPeople = new List<People>();
                 using (MySqlConnection conn = _sqlData.GetConnect())
                 {
                     string query = @"UPDATE people SET num_reports = @Num_Reports" +
@@ -278,40 +277,51 @@ namespace Malshinon.Models
             }
         }
 
-        // public void UpdateType(string secretCode)
-        // {
-        //     try
-        //     {
-        //         People people = new People();
-        //         PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
-        //         var ListPeople = new List<People>();
-        //         using (MySqlConnection conn = _sqlData.GetConnect())
-        //         {
-        //             string query = @"UPDATE people SET num_mentions = @Num_Mentions" +
-        //                 " WHERE secret_code = @Secret_Code";
-        //             MySqlCommand cmd = new MySqlCommand(query, conn);
-        //             if (peopleDAL.SearchBySecretCode(secretCode))
-        //             {
+        public void UpdateType(string secretCode)
+        {
+            try
+            {
+                PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
+                People person = peopleDAL.GetPerson(secretCode);
+                
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    string query = @"UPDATE people SET type = @Type" +
+                        " WHERE secret_code = @Secret_Code";
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@Secret_Code", secretCode);
+                    if (person.Type == "reporter" || person.Type == "both")
+                    {
+                        if (person.NumReports >= 10)
+                        {
+                            cmd.Parameters.AddWithValue("@Type", "potential_agent");
+                        }
+                    }
+                    else if (person.Type == "potential_agent")
+                    {
+                        Console.WriteLine("The Type is already potential_agent!!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("The Type isn't reporter or both");
+                    }
 
-        //             }
-        //             cmd.Parameters.AddWithValue("@Num_Mentions", people.NumReports);
-        //             cmd.Parameters.AddWithValue("@Secret_Code", secretCode);
-        //             int rowsAffected = cmd.ExecuteNonQuery();
+                    int rowsAffected = cmd.ExecuteNonQuery();
 
-        //             if (rowsAffected > 0)
-        //             {
-        //                 Console.WriteLine("Updated Mentions successfully!");
-        //             }
-        //             else
-        //             {
-        //                 Console.WriteLine("The update Mentions was not successful!");
-        //             }
-        //         }
-        //     }
-        //     catch (System.Exception ex)
-        //     {
-        //         Console.WriteLine($"ERROR!! {ex.Message}");
-        //     }
-        // }
+                    if (rowsAffected > 0)
+                    {
+                        Console.WriteLine("Updated Mentions successfully!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("The update Mentions was not successful!");
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+            }
+        }
     }
 }
