@@ -285,6 +285,9 @@ namespace Malshinon.Models
             {
                 PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
                 People person = peopleDAL.GetPerson(secretCode);
+
+                IntelReportsDAL intelReportsDAL = new IntelReportsDAL(_sqlData);
+                
                 
                 using (MySqlConnection conn = _sqlData.GetConnect())
                 {
@@ -294,7 +297,7 @@ namespace Malshinon.Models
                     cmd.Parameters.AddWithValue("@Secret_Code", secretCode);
                     if (person.Type == "reporter" || person.Type == "both")
                     {
-                        if (person.NumReports >= 10)
+                        if (person.NumReports >= 10 && intelReportsDAL.GetStats(secretCode))
                         {
                             cmd.Parameters.AddWithValue("@Type", "potential_agent");
                         }
