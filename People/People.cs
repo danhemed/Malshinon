@@ -1,5 +1,7 @@
 using System;
 using Malshinon.Models;
+using MySql.Data.MySqlClient;
+using Malshinon.DataBase;
 
 namespace Malshinon.Models
 {
@@ -13,21 +15,31 @@ namespace Malshinon.Models
         public int NumReports { get; set; }
         public int NumMentions { get; set; }
 
-        public People(int id, string firstName, string lastName, string secretCode, string type, int numReports, int numMentions)
+        public People()
         {
-            Id = id;
-            FirstName = firstName;
-            LastName = lastName;
-            SecretCode = secretCode;
-            Type = type;
-            NumReports = numReports;
-            NumMentions = numMentions;
+
         }
 
         // # for print the row #
         public override string ToString()
         {
             return $"ID: {Id}, FirstName: {FirstName}, LastName: {LastName}, SecretCode: {SecretCode}, Type: {Type}, NumReports: {NumReports}, NumMentions: {NumMentions}";
+        }
+
+        public static People createFromReader(MySqlDataReader reader)
+        {
+            reader.Read();
+            People person = new People
+            {
+                Id = reader.GetInt32("Id"),
+                FirstName = reader.GetString("FirstName"),
+                LastName = reader.GetString("LastName"),
+                SecretCode = reader.GetString("Secret_Code"),
+                Type = reader.GetString("Type"),
+                NumReports = reader.GetInt32("Num_Reports"),
+                NumMentions = reader.GetInt32("Num_Mentions")
+            };
+            return person;
         }
     }
 }
