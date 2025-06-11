@@ -25,7 +25,7 @@ namespace Malshinon.Models
             }
 
             Console.WriteLine("ONE PERSON!!");
-            peopleDAL.GetPerson("45t");
+            Console.WriteLine(peopleDAL.GetPerson("45t"));
 
             // IntelReports reports = new IntelReports(id: 1, reporterId: 1, targetId: 2, text: "Report", timeStamp: DateTime.Now);
             // IntelReportsDAL reportsDAL = new IntelReportsDAL(sqlData);

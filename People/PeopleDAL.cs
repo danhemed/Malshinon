@@ -46,24 +46,25 @@ namespace Malshinon.Models
             try
             {
                 var people = new List<People>();
-                MySqlConnection conn = _sqlData.GetConnect();
-                var cmd = new MySqlCommand("SELECT * FROM people", conn);
-                var reader = cmd.ExecuteReader();
-
-                people.Add(People.createFromReader(reader));
-                while (reader.Read())
+                using (MySqlConnection conn = _sqlData.GetConnect())
                 {
-                    People person = new People
+                    var cmd = new MySqlCommand("SELECT * FROM people", conn);
+                    var reader = cmd.ExecuteReader();
+                    people.Add(People.createFromReader(reader));
+                    while (reader.Read())
                     {
-                        Id = reader.GetInt32("Id"),
-                        FirstName = reader.GetString("FirstName"),
-                        LastName = reader.GetString("LastName"),
-                        SecretCode = reader.GetString("Secret_Code"),
-                        Type = reader.GetString("Type"),
-                        NumReports = reader.GetInt32("Num_Reports"),
-                        NumMentions = reader.GetInt32("Num_Mentions")
-                    };
-                    people.Add(person);
+                        People person = new People
+                        {
+                            Id = reader.GetInt32("Id"),
+                            FirstName = reader.GetString("FirstName"),
+                            LastName = reader.GetString("LastName"),
+                            SecretCode = reader.GetString("Secret_Code"),
+                            Type = reader.GetString("Type"),
+                            NumReports = reader.GetInt32("Num_Reports"),
+                            NumMentions = reader.GetInt32("Num_Mentions")
+                        };
+                        people.Add(person);
+                    }
                 }
                 return people;
             }
@@ -78,21 +79,17 @@ namespace Malshinon.Models
         {
             try
             {
-                MySqlConnection conn = _sqlData.GetConnect();
-                var cmd = new MySqlCommand($"SELECT * FROM people WHERE secret_code = secret_code", conn);
-                var reader = cmd.ExecuteReader();
-                People.createFromReader(reader);
-                People person = new People
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    var cmd = new MySqlCommand("SELECT * FROM people WHERE secret_code = @SecretCode", conn);
+                    cmd.Parameters.AddWithValue("@SecretCode", secretCode);
+                    var reader = cmd.ExecuteReader();
+                    if (reader.Read())
                     {
-                        Id = reader.GetInt32("Id"),
-                        FirstName = reader.GetString("FirstName"),
-                        LastName = reader.GetString("LastName"),
-                        SecretCode = reader.GetString("Secret_Code"),
-                        Type = reader.GetString("Type"),
-                        NumReports = reader.GetInt32("Num_Reports"),
-                        NumMentions = reader.GetInt32("Num_Mentions")
-                    };
-                return person;
+                        return People.createFromReader(reader);
+                    }
+                }
+                return null;
             }
             catch (System.Exception ex)
             {
