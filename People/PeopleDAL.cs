@@ -51,16 +51,7 @@ namespace Malshinon.Models
                     people.Add(People.createFromReader(reader));
                     while (reader.Read())
                     {
-                        People person = new People
-                        {
-                            Id = reader.GetInt32("Id"),
-                            FirstName = reader.GetString("FirstName"),
-                            LastName = reader.GetString("LastName"),
-                            SecretCode = reader.GetString("Secret_Code"),
-                            Type = reader.GetString("Type"),
-                            NumReports = reader.GetInt32("Num_Reports"),
-                            NumMentions = reader.GetInt32("Num_Mentions")
-                        };
+                        People person = People.createFromReader(reader);
                         people.Add(person);
                     }
                 }
@@ -93,6 +84,29 @@ namespace Malshinon.Models
             {
                 Console.WriteLine($"ERROR!! {ex.Message}");
                 return null;
+            }
+        }
+
+        public int GetIdOfPerson(string secretCode)
+        {
+            try
+            {
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    var cmd = new MySqlCommand("SELECT * FROM people WHERE secret_code = @SecretCode", conn);
+                    cmd.Parameters.AddWithValue("@SecretCode", secretCode);
+                    var reader = cmd.ExecuteReader();
+                    if (reader.Read())
+                    {
+                        return reader.GetInt32("Id");
+                    }
+                }
+                return -1;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+                return -1;
             }
         }
 
@@ -132,6 +146,172 @@ namespace Malshinon.Models
             }
         }
 
-        
+        public void DeletePerson(string secretCode)
+        {
+            try
+            {
+                PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
+                int personId = peopleDAL.GetIdOfPerson(secretCode);
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    string queryReports = @"DELETE FROM intel_reports WHERE reporter_id = @Reporter_Id";
+                    MySqlCommand cmdReports = new MySqlCommand(queryReports, conn);
+                    cmdReports.Parameters.AddWithValue("@Reporter_Id", personId);
+                    int rowsAffectedReports = cmdReports.ExecuteNonQuery();
+
+                    if (rowsAffectedReports > 0)
+                    {
+                        Console.WriteLine("Delete reports of person successfully!");
+                    }
+
+                    string queryPeople = "DELETE FROM people WHERE secret_code = @SecretCode";
+                    MySqlCommand cmdPeople = new MySqlCommand(queryPeople, conn);
+                    cmdPeople.Parameters.AddWithValue("@SecretCode", secretCode);
+                    int rowsAffectedPeople = cmdPeople.ExecuteNonQuery();
+
+                    if (rowsAffectedPeople > 0)
+                    {
+                        Console.WriteLine("Delete person successfully!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("The delete was not successful!");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+            }
+        }
+
+        public bool SearchBySecretCode(string secretCode)
+        {
+            try
+            {
+                var people = new List<People>();
+                MySqlConnection conn = _sqlData.GetConnect();
+                var cmd = new MySqlCommand("SELECT * FROM people", conn);
+                var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    People person = People.createFromReader(reader);
+                    people.Add(person);
+                }
+                foreach (var person in people)
+                {
+                    if (person.SecretCode == secretCode)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+                return false;
+            }
+        }
+
+        public void UpdateReportsNum(string secretCode)
+        {
+            try
+            {
+                var ListPeople = new List<People>();
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    string query = @"UPDATE people SET num_reports = @Num_Reports" +
+                        " WHERE secret_code = @Secret_Code";
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@Secret_Code", secretCode);
+                    cmd.Parameters.AddWithValue("@Num_Reports", +1);
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        Console.WriteLine("Updated Reports successfully!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("The update Reports was not successful!");
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+            }
+        }
+
+        public void UpdateMentionsNum(string secretCode)
+        {
+            try
+            {
+                var ListPeople = new List<People>();
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    string query = @"UPDATE people SET num_mentions = @Num_Mentions" +
+                        " WHERE secret_code = @Secret_Code";
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@Secret_Code", secretCode);
+                    cmd.Parameters.AddWithValue("@Num_Mentions", +1);
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        Console.WriteLine("Updated Mentions successfully!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("The update Mentions was not successful!");
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+            }
+        }
+
+        // public void UpdateType(string secretCode)
+        // {
+        //     try
+        //     {
+        //         People people = new People();
+        //         PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
+        //         var ListPeople = new List<People>();
+        //         using (MySqlConnection conn = _sqlData.GetConnect())
+        //         {
+        //             string query = @"UPDATE people SET num_mentions = @Num_Mentions" +
+        //                 " WHERE secret_code = @Secret_Code";
+        //             MySqlCommand cmd = new MySqlCommand(query, conn);
+        //             if (peopleDAL.SearchBySecretCode(secretCode))
+        //             {
+
+        //             }
+        //             cmd.Parameters.AddWithValue("@Num_Mentions", people.NumReports);
+        //             cmd.Parameters.AddWithValue("@Secret_Code", secretCode);
+        //             int rowsAffected = cmd.ExecuteNonQuery();
+
+        //             if (rowsAffected > 0)
+        //             {
+        //                 Console.WriteLine("Updated Mentions successfully!");
+        //             }
+        //             else
+        //             {
+        //                 Console.WriteLine("The update Mentions was not successful!");
+        //             }
+        //         }
+        //     }
+        //     catch (System.Exception ex)
+        //     {
+        //         Console.WriteLine($"ERROR!! {ex.Message}");
+        //     }
+        // }
     }
 }
