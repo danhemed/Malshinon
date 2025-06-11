@@ -1,6 +1,7 @@
 using System;
 using Malshinon.Models;
 using MySql.Data.MySqlClient;
+using Malshinon.DataBase;
 
 namespace Malshinon.Models
 {
@@ -14,16 +15,9 @@ namespace Malshinon.Models
         public int NumReports { get; set; }
         public int NumMentions { get; set; }
 
-        // public People(int id, string firstName, string lastName, string secretCode, string type, int numReports, int numMentions)
         public People()
         {
-            // Id = id;
-            // FirstName = firstName;
-            // LastName = lastName;
-            // SecretCode = secretCode;
-            // Type = type;
-            // NumReports = numReports;
-            // NumMentions = numMentions;
+
         }
 
         // # for print the row #
@@ -44,7 +38,7 @@ namespace Malshinon.Models
                 Type = reader.GetString("Type"),
                 NumReports = reader.GetInt32("Num_Reports"),
                 NumMentions = reader.GetInt32("Num_Mentions")
-            }
+            };
             return person;
         }
     }
