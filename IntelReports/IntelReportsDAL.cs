@@ -173,7 +173,7 @@ namespace Malshinon.Models
             }
         }
 
-        public bool GetStats(string secretCode)
+        public int GetReportStats(string secretCode)
         {
             try
             {
@@ -184,19 +184,66 @@ namespace Malshinon.Models
                 {
                     counter += report.Text.Length;
                 }
-                if ((counter / 2) > 100)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                return counter;
             }
             catch (System.Exception ex)
             {
                 Console.WriteLine($"ERROR!! {ex.Message}");
-                return false;
+                return 0;
+            }
+        }
+
+        public void CreateTarget(string text)
+        {
+            string firstName = "";
+            string lastName = "";
+            string[] textList = text.Split(' ');
+            int count = 0;
+            foreach (string word in textList)
+            {
+                if (word == word.ToUpper())
+                {
+                    if (count == 0)
+                    {
+                        firstName = word;
+                        count++;
+                    }
+                    else if (count == 1)
+                    {
+                        lastName = word;
+                        break;
+                    }
+                }
+            }
+            People newPerson = new People{ FirstName = firstName, LastName = lastName, Type = "target" };
+            PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
+            peopleDAL.AddPeople(newPerson);
+        }
+
+        public int GetTargetStats(string secretCode)
+        {
+            try
+            {
+                var people = new List<People>();
+                PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
+                int personId = peopleDAL.GetIdOfPerson(secretCode);
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    var cmd = new MySqlCommand("SELECT * FROM people WHERE id = @TargetId", conn);
+                    cmd.Parameters.AddWithValue("@TargetId", personId);
+                    var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        People person = People.createFromReader(reader);
+                        people.Add(person);
+                    }
+                }
+                return people.Count;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+                return 0;
             }
         }
 
