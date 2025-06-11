@@ -8,7 +8,8 @@ namespace Malshinon.Models
         public static void Main(string[] args)
         {
             MySqlData sqlData = new MySqlData();
-            PeopleDAL peopleDAL = new PeopleDAL(sqlData);
+            Menu menu = new Menu(sqlData);
+            menu.TheMenu();
         }
     }
 } 

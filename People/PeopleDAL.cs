@@ -110,7 +110,7 @@ namespace Malshinon.Models
             }
         }
 
-        public void UpdatePerson(string firstName, string lastName, string secretCode, string type, int numReports , int numMentions)
+        public void UpdatePerson(string firstName, string lastName, string secretCode, string type, int numReports, int numMentions)
         {
             try
             {
@@ -287,8 +287,8 @@ namespace Malshinon.Models
                 People person = peopleDAL.GetPerson(secretCode);
 
                 IntelReportsDAL intelReportsDAL = new IntelReportsDAL(_sqlData);
-                
-                
+
+
                 using (MySqlConnection conn = _sqlData.GetConnect())
                 {
                     string query = @"UPDATE people SET type = @Type" +
@@ -297,18 +297,18 @@ namespace Malshinon.Models
                     cmd.Parameters.AddWithValue("@Secret_Code", secretCode);
                     if (person.Type == "reporter" || person.Type == "both")
                     {
-                        if (person.NumReports >= 10 && intelReportsDAL.GetStats(secretCode))
+                        if (person.NumReports >= 10 && intelReportsDAL.GetReportStats(secretCode) > 100)
                         {
                             cmd.Parameters.AddWithValue("@Type", "potential_agent");
                         }
                     }
+                    else if (person.Type == "target")
+                    {
+                        cmd.Parameters.AddWithValue("@Type", "both");
+                    }
                     else if (person.Type == "potential_agent")
                     {
                         Console.WriteLine("The Type is already potential_agent!!");
-                    }
-                    else
-                    {
-                        Console.WriteLine("The Type isn't reporter or both");
                     }
 
                     int rowsAffected = cmd.ExecuteNonQuery();
@@ -327,6 +327,21 @@ namespace Malshinon.Models
             {
                 Console.WriteLine($"ERROR!! {ex.Message}");
             }
+        }
+        
+        public string GenerateRandomCode()
+        {
+            string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            Random random = new Random();
+            string result = "";
+
+            for (int i = 0; i < 4; i++)
+            {
+                int index = random.Next(chars.Length);
+                result += chars[index];
+            }
+
+            return result;
         }
     }
 }

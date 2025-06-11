@@ -115,7 +115,7 @@ namespace Malshinon.Models
             }
         }
 
-        public void UpdateReport(int targetId, string text, string secretCode)
+        public void UpdateReport( string text, string secretCode)
         {
             try
             {
@@ -124,11 +124,10 @@ namespace Malshinon.Models
 
                 using (MySqlConnection conn = _sqlData.GetConnect())
                 {
-                    string query = @"UPDATE intel_reports SET target_id = @TargetId, text = @Text" +
+                    string query = @"UPDATE intel_reports SET text = @Text" +
                                 " WHERE reporter_id = @ReporterId";
                     MySqlCommand cmd = new MySqlCommand(query, conn);
                     cmd.Parameters.AddWithValue("@ReporterId", personId);
-                    cmd.Parameters.AddWithValue("@TargetId", targetId);
                     cmd.Parameters.AddWithValue("@Text", text);
                     int rowsAffected = cmd.ExecuteNonQuery();
 
@@ -215,7 +214,7 @@ namespace Malshinon.Models
                     }
                 }
             }
-            People newPerson = new People{ FirstName = firstName, LastName = lastName, Type = "target" };
+            People newPerson = new People { FirstName = firstName, LastName = lastName, Type = "target" };
             PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
             peopleDAL.AddPeople(newPerson);
         }
@@ -247,5 +246,40 @@ namespace Malshinon.Models
             }
         }
 
+        public bool SearchBySecretCode(string secretCode)
+        {
+            try
+            {
+                PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
+                var reports = new List<IntelReports>();
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    var cmd = new MySqlCommand("SELECT * FROM intel_reports", conn);
+                    var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        IntelReports intelReports = IntelReports.createFromReader(reader);
+                        reports.Add(intelReports);
+                    }
+                    foreach (var report in reports)
+                    {
+                        if (report.ReporterId == peopleDAL.GetIdOfPerson(secretCode))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+                return false;
+            }
+        }
     }
 }

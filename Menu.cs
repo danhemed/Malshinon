@@ -16,9 +16,10 @@ namespace Malshinon.Models
             _sqlData = sqlData;
         }
 
-        public void MenuSecretCode()
+        public void TheMenu()
         {
             PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
+            IntelReportsDAL intelReportsDAL = new IntelReportsDAL(_sqlData);
             Menu menu = new Menu(_sqlData);
 
             bool flag = true;
@@ -32,10 +33,10 @@ namespace Malshinon.Models
                 Console.WriteLine("4. UPDATE Person >>");
                 Console.WriteLine("5. DELETE Person >>");
                 Console.WriteLine("6. View All Intel Reports >>");
-                Console.WriteLine("7. View Intel Report By Secret Code >>");
+                Console.WriteLine("7. View ALL Intel Report By Secret Code >>");
                 Console.WriteLine("8. UPDATE Intel Report >>");
                 Console.WriteLine("9. DELETE Intel Report >>");
-                Console.WriteLine("10. EXIT >>");
+                Console.WriteLine("0. EXIT >>");
                 string option = Console.ReadLine();
 
                 switch (option)
@@ -45,14 +46,14 @@ namespace Malshinon.Models
                         string secretCode = Console.ReadLine();
                         if (peopleDAL.SearchBySecretCode(secretCode))
                         {
-                            menu.MenuOption();
+                            menu.CreateReport(peopleDAL.GetIdOfPerson(secretCode));
                         }
                         else
                         {
                             menu.MenuParmeters(secretCode);
                             if (peopleDAL.SearchBySecretCode(secretCode))
                             {
-                                menu.MenuOption();
+                                menu.CreateReport(peopleDAL.GetIdOfPerson(secretCode));
                             }
                             else
                             {
@@ -62,7 +63,10 @@ namespace Malshinon.Models
                         break;
 
                     case "2":
-                        peopleDAL.GetAllPeople();
+                        foreach (var person in peopleDAL.GetAllPeople())
+                        {
+                            Console.WriteLine(person);
+                        }
                         break;
 
                     case "3":
@@ -70,7 +74,7 @@ namespace Malshinon.Models
                         string secretCode3 = Console.ReadLine();
                         if (peopleDAL.SearchBySecretCode(secretCode3))
                         {
-                            peopleDAL.GetPerson(secretCode3);
+                            Console.WriteLine(peopleDAL.GetPerson(secretCode3));
                         }
                         else
                         {
@@ -118,18 +122,58 @@ namespace Malshinon.Models
                         break;
 
                     case "6":
+                        foreach (var report in intelReportsDAL.GetAllIntelReports())
+                        {
+                            Console.WriteLine(report);
+                        }
                         break;
 
                     case "7":
+                        Console.WriteLine("Enter your Secret Code you want to View:");
+                        string secretCode7 = Console.ReadLine();
+                        if (intelReportsDAL.SearchBySecretCode(secretCode7))
+                        {
+                            foreach (var report in intelReportsDAL.GetAllIntelReportsOfReporter(secretCode7))
+                            {
+                                Console.WriteLine(report);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("The Secret Code you entered is not found!");
+                        }
                         break;
 
                     case "8":
+                        Console.WriteLine("Enter the Secret Code you want to Update:");
+                        string secretCode8 = Console.ReadLine();
+                        Console.WriteLine("Enter the new Text:");
+                        string text = Console.ReadLine();
+                        
+                        if (intelReportsDAL.SearchBySecretCode(secretCode8))
+                        {
+                            intelReportsDAL.UpdateReport(text, secretCode8);
+                        }
+                        else
+                        {
+                            Console.WriteLine("The Secret Code you entered is not found!");
+                        }
                         break;
 
                     case "9":
+                        Console.WriteLine("Enter your Secret Code you want to delete:");
+                        string secretCode9 = Console.ReadLine();
+                        if (intelReportsDAL.SearchBySecretCode(secretCode9))
+                        {
+                            intelReportsDAL.DeleteReport(secretCode9);
+                        }
+                        else
+                        {
+                            Console.WriteLine("The Secret Code you entered is not found!");
+                        }
                         break;
 
-                    case "10":
+                    case "0":
                         flag = false;
                         break;
                 }
@@ -146,44 +190,25 @@ namespace Malshinon.Models
             string lastName = Console.ReadLine();
             Console.WriteLine("Enter your Type Name:\n('reporter','target','both','potential_agent')");
             string type = Console.ReadLine();
-            peopleDAL.AddPeople(firstName, lastName, secretCode, type);
-        }
-        
-        public void MenuOption()
-        {
-            bool flag = true;
-            while (flag)
-            {
-                Console.WriteLine("~~~ MENU OPTIONS ~~~");
-                Console.WriteLine("--- Enter your number choice ---");
-                Console.WriteLine("1. Create Intel Report ");
-                Console.WriteLine("2. ");
-            }
+            People people = new People{FirstName = firstName, LastName = lastName, SecretCode = secretCode, Type = type};
+            peopleDAL.AddPeople(people);
         }
 
-        public void AddNewReporter(People people)
+        public void CreateReport(int reporterId)
         {
-            try
-            {
-                using (MySqlConnection conn = _sqlData.GetConnect())
-                {
-                    string query = "INSERT INTO people (Id, FirstName, LastName, Secret_Code, Type, Num_Reports, Num_Mentions)" +
-                        "VALUE (@Id, @FirstName, @LastName, @Secret_Code, @Type, @Num_Reports, @Num_Mentions)";
-                    MySqlCommand cmd = new MySqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@Id", people.Id);
-                    cmd.Parameters.AddWithValue("@FirstName", people.FirstName);
-                    cmd.Parameters.AddWithValue("@LastName", people.LastName);
-                    cmd.Parameters.AddWithValue("@Secret_Code", people.SecretCode);
-                    cmd.Parameters.AddWithValue("@Type", people.Type);
-                    cmd.Parameters.AddWithValue("@Num_Reports", people.NumReports);
-                    cmd.Parameters.AddWithValue("@Num_Mentions", people.NumMentions);
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine($"ERROR!! {ex.Message}");
-            }
+            PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
+            IntelReportsDAL intelReportsDAL = new IntelReportsDAL(_sqlData);
+            Console.WriteLine("Enter your the First Name of target:");
+            string firstName = Console.ReadLine();
+            Console.WriteLine("Enter your the Last Name of target:");
+            string lastName = Console.ReadLine();
+            Console.WriteLine("Enter your text:");
+            string text = Console.ReadLine();
+            string secretCode = peopleDAL.GenerateRandomCode();
+            People person = new People { FirstName = firstName, LastName = lastName, SecretCode = secretCode, Type = "target" };
+            peopleDAL.AddPeople(person);
+            IntelReports intelReports = new IntelReports{ReporterId = reporterId ,TargetId = peopleDAL.GetIdOfPerson(secretCode) ,Text = text};
+            intelReportsDAL.AddReports(intelReports);    
         }
 
     }
