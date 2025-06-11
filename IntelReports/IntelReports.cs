@@ -1,5 +1,7 @@
 using System;
 using Malshinon.Models;
+using MySql.Data.MySqlClient;
+using Malshinon.DataBase;
 
 namespace Malshinon.Models
 {
@@ -11,13 +13,29 @@ namespace Malshinon.Models
         public string Text { get; set; }
         public DateTime TimeStamp { get; set; }
 
-        public IntelReports(int id, int reporterId, int targetId, string text, DateTime timeStamp)
+        public IntelReports()
         {
-            Id = id;
-            ReporterId = reporterId;
-            TargetId = targetId;
-            Text = text;
-            TimeStamp = timeStamp;
+
+        }
+
+        // # for print the row #
+        public override string ToString()
+        {
+            return $"ID: {Id}, ReporterId: {ReporterId}, TargetId: {TargetId}, \nText: {Text},\n TimeStamp: {TimeStamp}";
+        }
+
+        public static IntelReports createFromReader(MySqlDataReader reader)
+        {
+            reader.Read();
+            IntelReports report = new IntelReports
+            {
+                Id = reader.GetInt32("Id"),
+                ReporterId = reader.GetInt32("ReporterId"),
+                TargetId = reader.GetInt32("TargetId"),
+                Text = reader.GetString("Text"),
+                TimeStamp = reader.GetDateTime("TimeStamp")
+            };
+            return report;
         }
     }
 }

@@ -190,26 +190,28 @@ namespace Malshinon.Models
             try
             {
                 var people = new List<People>();
-                MySqlConnection conn = _sqlData.GetConnect();
-                var cmd = new MySqlCommand("SELECT * FROM people", conn);
-                var reader = cmd.ExecuteReader();
-                while (reader.Read())
+                using (MySqlConnection conn = _sqlData.GetConnect())
                 {
-                    People person = People.createFromReader(reader);
-                    people.Add(person);
-                }
-                foreach (var person in people)
-                {
-                    if (person.SecretCode == secretCode)
+                    var cmd = new MySqlCommand("SELECT * FROM people", conn);
+                    var reader = cmd.ExecuteReader();
+                    while (reader.Read())
                     {
-                        return true;
+                        People person = People.createFromReader(reader);
+                        people.Add(person);
                     }
-                    else
+                    foreach (var person in people)
                     {
-                        return false;
+                        if (person.SecretCode == secretCode)
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
                     }
+                    return true;
                 }
-                return true;
             }
             catch (System.Exception ex)
             {
