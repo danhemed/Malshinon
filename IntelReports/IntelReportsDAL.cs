@@ -192,6 +192,35 @@ namespace Malshinon.Models
             }
         }
 
+        public string GetSecretCodeByReporterId(int reporterId)
+        {
+            try
+            {
+                PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
+                var reports = new List<IntelReports>();
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    var cmd = new MySqlCommand("SELECT secret_code FROM people INNER JOIN intel_reports on intel_reports.reporter_id = people.id" +
+                    " WHERE reporter_id = @ReporterId;", conn);
+                    cmd.Parameters.AddWithValue("@ReporterId", reporterId);
+                    var reader = cmd.ExecuteReader();
+                    if (reader.Read())
+                    {
+                        return People.createFromReader(reader).SecretCode;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+                return null;
+            }
+        }
+
         public void CreateTarget(string text)
         {
             string firstName = "";

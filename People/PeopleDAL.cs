@@ -189,28 +189,13 @@ namespace Malshinon.Models
         {
             try
             {
-                var people = new List<People>();
                 using (MySqlConnection conn = _sqlData.GetConnect())
                 {
-                    var cmd = new MySqlCommand("SELECT * FROM people", conn);
-                    var reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        People person = People.createFromReader(reader);
-                        people.Add(person);
-                    }
-                    foreach (var person in people)
-                    {
-                        if (person.SecretCode == secretCode)
-                        {
-                            return true;
-                        }
-                        else
-                        {
-                            return false;
-                        }
-                    }
-                    return true;
+                    string query = "SELECT COUNT(*) FROM people WHERE Secret_Code = @SecretCode";
+                    var cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@SecretCode", secretCode);
+                    int count = Convert.ToInt32(cmd.ExecuteScalar());
+                    return count > 0;
                 }
             }
             catch (System.Exception ex)
