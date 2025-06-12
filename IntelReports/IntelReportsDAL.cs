@@ -62,7 +62,7 @@ namespace Malshinon.Models
             }
         }
 
-        public List<IntelReports> GetAllIntelReportsOfReporter(string secretCode)
+        public List<IntelReports> GetAllIntelReportsByReporter(string secretCode)
         {
             try
             {
@@ -72,8 +72,8 @@ namespace Malshinon.Models
                 using (MySqlConnection conn = _sqlData.GetConnect())
                 {
                     var cmd = new MySqlCommand("SELECT * FROM intel_reports WHERE reporter_id = @ReporterId", conn);
-                    var reader = cmd.ExecuteReader();
                     cmd.Parameters.AddWithValue("@ReporterId", personId);
+                    var reader = cmd.ExecuteReader();
                     reports.Add(IntelReports.createFromReader(reader));
                     while (reader.Read())
                     {
@@ -87,6 +87,35 @@ namespace Malshinon.Models
             {
                 Console.WriteLine($"ERROR!! {ex.Message}");
                 return null;
+            }
+        }
+
+        public void CreateReport(int reporterId)
+        {
+            PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
+            IntelReportsDAL intelReportsDAL = new IntelReportsDAL(_sqlData);
+            Console.WriteLine("Enter the First Name of target:");
+            string firstName = Console.ReadLine();
+            Console.WriteLine("Enter the Last Name of target:");
+            string lastName = Console.ReadLine();
+            Console.WriteLine("Enter Why do you think he's a target:");
+            string text = Console.ReadLine();
+            string secretCode = peopleDAL.GenerateRandomCode();
+            People person = new People { FirstName = firstName, LastName = lastName, SecretCode = secretCode, Type = "target" };
+            peopleDAL.AddPeople(person);
+            Console.WriteLine("Create New Person!!");
+            IntelReports intelReports = new IntelReports { ReporterId = reporterId, TargetId = peopleDAL.GetIdOfPerson(secretCode), Text = text , TimeStamp = DateTime.Now};
+            intelReportsDAL.AddReports(intelReports);
+            Console.WriteLine("Create New Intel Reports!!");
+            peopleDAL.UpdateReportsNum(intelReportsDAL.GetSecretCodeByReporterId(reporterId));
+            Console.WriteLine("Update the num Reports!!");
+            peopleDAL.UpdateMentionsNum(secretCode);
+            Console.WriteLine($"Update the num Mentions of: {secretCode}!!");
+            peopleDAL.UpdateType(intelReportsDAL.GetSecretCodeByReporterId(reporterId));
+            Console.WriteLine($"Update the Type of: {intelReportsDAL.GetSecretCodeByReporterId(reporterId)}!!");
+            if (peopleDAL.GetPerson(secretCode).Type == "reporter")
+            {             
+                peopleDAL.UpdateType(secretCode);
             }
         }
 
@@ -153,17 +182,17 @@ namespace Malshinon.Models
             {
                 PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
                 int personId = peopleDAL.GetIdOfPerson(secretCode);
+                
                 using (MySqlConnection conn = _sqlData.GetConnect())
                 {
-                    string queryReports = @"DELETE FROM intel_reports WHERE reporter_id = @Reporter_Id";
+                    string queryReports = @"DELETE FROM intel_reports" +
+                    " WHERE reporter_id = @PersonId OR target_id = @PersonId";
+
                     MySqlCommand cmdReports = new MySqlCommand(queryReports, conn);
-                    cmdReports.Parameters.AddWithValue("@Reporter_Id", personId);
+                    cmdReports.Parameters.AddWithValue("@PersonId", personId);
                     int rowsAffectedReports = cmdReports.ExecuteNonQuery();
 
-                    if (rowsAffectedReports > 0)
-                    {
-                        Console.WriteLine("Delete reports of person successfully!");
-                    }
+                    Console.WriteLine($"Deleted {rowsAffectedReports} related reports.");
                 }
             }
             catch (Exception ex)
@@ -177,7 +206,7 @@ namespace Malshinon.Models
             try
             {
                 IntelReportsDAL intelReportsDAL = new IntelReportsDAL(_sqlData);
-                List<IntelReports> reports = intelReportsDAL.GetAllIntelReportsOfReporter(secretCode);
+                List<IntelReports> reports = intelReportsDAL.GetAllIntelReportsByReporter(secretCode);
                 int counter = 0;
                 foreach (var report in reports)
                 {
@@ -192,31 +221,33 @@ namespace Malshinon.Models
             }
         }
 
-        public void CreateTarget(string text)
+        public string GetSecretCodeByReporterId(int reporterId)
         {
-            string firstName = "";
-            string lastName = "";
-            string[] textList = text.Split(' ');
-            int count = 0;
-            foreach (string word in textList)
+            try
             {
-                if (word == word.ToUpper())
+                using (MySqlConnection conn = _sqlData.GetConnect())
                 {
-                    if (count == 0)
+                    string query = "SELECT people.secret_code FROM people " +
+                                "INNER JOIN intel_reports ON intel_reports.reporter_id = people.id " +
+                                "WHERE reporter_id = @ReporterId;";
+                    var cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@ReporterId", reporterId);
+                    var reader = cmd.ExecuteReader();
+                    if (reader.Read())
                     {
-                        firstName = word;
-                        count++;
+                        return reader["secret_code"].ToString();
                     }
-                    else if (count == 1)
+                    else
                     {
-                        lastName = word;
-                        break;
+                        return null;
                     }
                 }
             }
-            People newPerson = new People { FirstName = firstName, LastName = lastName, Type = "target" };
-            PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
-            peopleDAL.AddPeople(newPerson);
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+                return null;
+            }
         }
 
         public int GetTargetStats(string secretCode)

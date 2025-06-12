@@ -21,7 +21,7 @@ namespace Malshinon.Models
         // # for print the row #
         public override string ToString()
         {
-            return $"ID: {Id}, ReporterId: {ReporterId}, TargetId: {TargetId}, \nText: {Text},\n TimeStamp: {TimeStamp}";
+            return $"ID: {Id}, ReporterId: {ReporterId}, TargetId: {TargetId}, TimeStamp: {TimeStamp},\nText: {Text}";
         }
 
         public static IntelReports createFromReader(MySqlDataReader reader)
@@ -30,10 +30,10 @@ namespace Malshinon.Models
             IntelReports report = new IntelReports
             {
                 Id = reader.GetInt32("Id"),
-                ReporterId = reader.GetInt32("ReporterId"),
-                TargetId = reader.GetInt32("TargetId"),
+                ReporterId = reader.GetInt32("Reporter_Id"),
+                TargetId = reader.GetInt32("Target_Id"),
                 Text = reader.GetString("Text"),
-                TimeStamp = reader.GetDateTime("TimeStamp")
+                TimeStamp = reader.GetDateTime("Time_Stamp")
             };
             return report;
         }
