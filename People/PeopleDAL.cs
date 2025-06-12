@@ -152,30 +152,29 @@ namespace Malshinon.Models
             {
                 PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
                 int personId = peopleDAL.GetIdOfPerson(secretCode);
-                using (MySqlConnection conn = _sqlData.GetConnect())
+                Console.Write($"Are you sure you want to delete person with code {secretCode} and all their reports? (y/n): ");
+                string confirm = Console.ReadLine();
+                if (confirm?.ToLower() != "n")
                 {
-                    string queryReports = @"DELETE FROM intel_reports WHERE reporter_id = @Reporter_Id";
-                    MySqlCommand cmdReports = new MySqlCommand(queryReports, conn);
-                    cmdReports.Parameters.AddWithValue("@Reporter_Id", personId);
-                    int rowsAffectedReports = cmdReports.ExecuteNonQuery();
+                    Console.WriteLine("Delete cancelled.");
+                    IntelReportsDAL intelReportsDAL = new IntelReportsDAL(_sqlData);
+                    intelReportsDAL.DeleteReport(secretCode);
 
-                    if (rowsAffectedReports > 0)
+                    using (MySqlConnection conn = _sqlData.GetConnect())
                     {
-                        Console.WriteLine("Delete reports of person successfully!");
-                    }
+                        string queryPeople = "DELETE FROM people WHERE secret_code = @SecretCode";
+                        MySqlCommand cmdPeople = new MySqlCommand(queryPeople, conn);
+                        cmdPeople.Parameters.AddWithValue("@SecretCode", secretCode);
+                        int rowsAffectedPeople = cmdPeople.ExecuteNonQuery();
 
-                    string queryPeople = "DELETE FROM people WHERE secret_code = @SecretCode";
-                    MySqlCommand cmdPeople = new MySqlCommand(queryPeople, conn);
-                    cmdPeople.Parameters.AddWithValue("@SecretCode", secretCode);
-                    int rowsAffectedPeople = cmdPeople.ExecuteNonQuery();
-
-                    if (rowsAffectedPeople > 0)
-                    {
-                        Console.WriteLine("Delete person successfully!");
-                    }
-                    else
-                    {
-                        Console.WriteLine("The delete was not successful!");
+                        if (rowsAffectedPeople > 0)
+                        {
+                            Console.WriteLine("Deleted person successfully!");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Delete failed. Person not found.");
+                        }
                     }
                 }
             }
@@ -277,9 +276,9 @@ namespace Malshinon.Models
                 using (MySqlConnection conn = _sqlData.GetConnect())
                 {
                     string query = @"UPDATE people SET type = @Type" +
-                        " WHERE secret_code = @Secret_Code";
+                        " WHERE secret_code = @SecretCode";
                     MySqlCommand cmd = new MySqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@Secret_Code", secretCode);
+                    cmd.Parameters.AddWithValue("@SecretCode", secretCode);
                     if (person.Type == "reporter" || person.Type == "both")
                     {
                         if (person.NumReports >= 10 && intelReportsDAL.GetReportStats(secretCode) > 100)
@@ -294,6 +293,11 @@ namespace Malshinon.Models
                     else if (person.Type == "potential_agent")
                     {
                         Console.WriteLine("The Type is already potential_agent!!");
+                    }
+                    if (!cmd.Parameters.Contains("@Type"))
+                    {
+                        Console.WriteLine("No type change needed, skipping update.");
+                        return;
                     }
 
                     int rowsAffected = cmd.ExecuteNonQuery();
@@ -313,7 +317,34 @@ namespace Malshinon.Models
                 Console.WriteLine($"ERROR!! {ex.Message}");
             }
         }
-        
+
+        public List<People> GetAllReporter()
+        {
+            try
+            {
+                var people = new List<People>();
+                using (MySqlConnection conn = _sqlData.GetConnect())
+                {
+                    var cmd = new MySqlCommand("SELECT * FROM people WHERE type = @Type OR type = @Type2", conn);
+                    cmd.Parameters.AddWithValue("@Type", "reporter");
+                    cmd.Parameters.AddWithValue("@Type2", "both");
+                    var reader = cmd.ExecuteReader();
+                    people.Add(People.createFromReader(reader));
+                    while (reader.Read())
+                    {
+                        People person = People.createFromReader(reader);
+                        people.Add(person);
+                    }
+                }
+                return people;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"ERROR!! {ex.Message}");
+                return null;
+            }
+        }
+
         public string GenerateRandomCode()
         {
             string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

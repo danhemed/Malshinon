@@ -43,11 +43,11 @@ namespace Malshinon.Models
                         if (!peopleDAL.SearchBySecretCode(secretCode))
                         {
                             menu.MenuParmeters(secretCode, peopleDAL);
+                            Console.WriteLine("Create A New Person!!");
                         }
-                        System.Threading.Thread.Sleep(500);
                         if (peopleDAL.SearchBySecretCode(secretCode))
                         {
-                            menu.CreateReport(peopleDAL.GetIdOfPerson(secretCode));
+                            intelReportsDAL.CreateReport(peopleDAL.GetIdOfPerson(secretCode));
                         }
                         else
                         {
@@ -92,32 +92,9 @@ namespace Malshinon.Models
             peopleDAL.AddPeople(people);
         }
 
-        public void CreateReport(int reporterId)
-        {
-            PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
-            IntelReportsDAL intelReportsDAL = new IntelReportsDAL(_sqlData);
-            Console.WriteLine("Enter your the First Name of target:");
-            string firstName = Console.ReadLine();
-            Console.WriteLine("Enter your the Last Name of target:");
-            string lastName = Console.ReadLine();
-            Console.WriteLine("Enter your text:");
-            string text = Console.ReadLine();
-            string secretCode = peopleDAL.GenerateRandomCode();
-            People person = new People { FirstName = firstName, LastName = lastName, SecretCode = secretCode, Type = "target" };
-            peopleDAL.AddPeople(person);
-            IntelReports intelReports = new IntelReports { ReporterId = reporterId, TargetId = peopleDAL.GetIdOfPerson(secretCode), Text = text };
-            intelReportsDAL.AddReports(intelReports);
-            peopleDAL.UpdateReportsNum(intelReportsDAL.GetSecretCodeByReporterId(reporterId));
-            peopleDAL.UpdateMentionsNum(secretCode);
-            peopleDAL.UpdateType(intelReportsDAL.GetSecretCodeByReporterId(reporterId));
-            peopleDAL.UpdateType(secretCode);
-        }
-
         public void MenuPeople()
         {
             PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
-            IntelReportsDAL intelReportsDAL = new IntelReportsDAL(_sqlData);
-            Menu menu = new Menu(_sqlData);
 
             bool flag = true;
             while (flag)
@@ -140,6 +117,13 @@ namespace Malshinon.Models
                         break;
 
                     case "2":
+                        foreach (var person in peopleDAL.GetAllReporter())
+                        {
+                            Console.WriteLine(person);
+                        }
+                        break;
+
+                    case "3":
                         Console.WriteLine("Enter your Secret Code you want to View:");
                         string secretCode3 = Console.ReadLine();
                         if (peopleDAL.SearchBySecretCode(secretCode3))
@@ -153,7 +137,7 @@ namespace Malshinon.Models
 
                         break;
 
-                    case "3":
+                    case "4":
                         Console.WriteLine("Enter the Secret Code you want to Update:");
                         string secretCode4 = Console.ReadLine();
                         Console.WriteLine("Enter the new first name:");
@@ -178,7 +162,7 @@ namespace Malshinon.Models
                         }
                         break;
 
-                    case "4":
+                    case "5":
                         Console.WriteLine("Enter your Secret Code you want to delete:");
                         string secretCode5 = Console.ReadLine();
                         if (peopleDAL.SearchBySecretCode(secretCode5))
@@ -202,9 +186,7 @@ namespace Malshinon.Models
 
         public void MenuIntelReports()
         {
-            PeopleDAL peopleDAL = new PeopleDAL(_sqlData);
             IntelReportsDAL intelReportsDAL = new IntelReportsDAL(_sqlData);
-            Menu menu = new Menu(_sqlData);
 
             bool flag = true;
             while (flag)
@@ -230,7 +212,7 @@ namespace Malshinon.Models
                         string secretCode7 = Console.ReadLine();
                         if (intelReportsDAL.SearchBySecretCode(secretCode7))
                         {
-                            foreach (var report in intelReportsDAL.GetAllIntelReportsOfReporter(secretCode7))
+                            foreach (var report in intelReportsDAL.GetAllIntelReportsByReporter(secretCode7))
                             {
                                 Console.WriteLine(report);
                             }

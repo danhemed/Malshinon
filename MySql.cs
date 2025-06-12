@@ -15,7 +15,6 @@ namespace Malshinon.DataBase
             {
                 var connection = new MySqlConnection(connectionString);
                 connection.Open();
-                Console.WriteLine("Connected to MySql database successfuly.");
                 return connection;
             }
             catch (MySqlException ex)
